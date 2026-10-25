@@ -1,0 +1,20 @@
+@startuml Topology
+title Multi-region topology
+cloud "Mumbai primary" {
+  node "EKS aegis-prod" as mum
+  database "PG sync AZ" as pg
+  queue "Kafka" as k
+}
+cloud "Singapore DR" {
+  node "EKS aegis-dr warm" as sin
+  database "PG async replica" as pgr
+  queue "Kafka MM2" as k2
+}
+actor Networks
+Networks --> mum
+mum --> pg
+mum --> k
+k --> k2 : MirrorMaker2
+pg --> pgr : async
+Networks ..> sin : Route53 failover
+@enduml

@@ -1,0 +1,94 @@
+syntax = "proto3";
+package aegis.v1;
+option java_multiple_files = true;
+
+message TxnContext {
+  string transaction_id = 1;
+  string trace_id = 2;
+  string card_hash = 3;
+  int64 amount_minor = 4;
+  string currency = 5;
+  string channel = 6;
+  string mcc = 7;
+  string country = 8;
+  string device_id = 9;
+  string merchant_id = 10;
+  double profile_avg_30d = 11;
+  int32 txn_count_10m = 12;
+}
+
+message RuleEvalRequest { TxnContext txn = 1; }
+message TriggeredRule {
+  string rule_id = 1;
+  int32 version = 2;
+  string severity = 3;
+  string action = 4;
+  string matched = 5;
+}
+message RuleEvalResponse {
+  int32 rule_score = 1;
+  repeated TriggeredRule triggered = 2;
+}
+
+service RuleEngineService {
+  rpc Evaluate(RuleEvalRequest) returns (RuleEvalResponse);
+}
+
+message ScoreRequest { TxnContext txn = 1; }
+message FeatureShap { string name = 1; double shap = 2; }
+message ScoreResponse {
+  double score = 1;
+  string model_id = 2;
+  string model_version = 3;
+  repeated FeatureShap top_features = 4;
+}
+
+service AnomalyDetectionService {
+  rpc Score(ScoreRequest) returns (ScoreResponse);
+}
+
+message GraphRequest { TxnContext txn = 1; }
+message GraphResponse {
+  bool community_suspicious = 1;
+  optional double modularity = 2;
+  optional int32 hops_to_known_fraud = 3;
+  optional double pagerank_device = 4;
+  repeated string templates_matched = 5;
+}
+
+service GraphAnalysisService {
+  rpc AnalyseRelationships(GraphRequest) returns (GraphResponse);
+}
+
+message ComputeRequest { TxnContext txn = 1; }
+message ComputeResponse {
+  int32 score = 1;
+  string action = 2;
+  string explanation = 3;
+  bool degraded = 4;
+}
+
+service RiskScoringService {
+  rpc ComputeScore(ComputeRequest) returns (ComputeResponse);
+}
+
+message ProfileId { string customer_hash = 1; }
+message Profile {
+  string customer_hash = 1;
+  double avg_30d = 2;
+  string home_country = 3;
+}
+message UpdateProfileRequest { Profile profile = 1; }
+message Empty {}
+
+service CustomerProfileService {
+  rpc GetProfile(ProfileId) returns (Profile);
+  rpc UpdateProfile(UpdateProfileRequest) returns (Empty);
+}
+
+message FeatureRequest { string card_hash = 1; string transaction_id = 2; }
+message FeatureMap { map<string, double> numeric = 1; }
+
+service FeatureStoreService {
+  rpc GetFeatures(FeatureRequest) returns (FeatureMap);
+}

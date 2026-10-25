@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "AuditEvent",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "event_type", "type": "string"},
+    {"name": "timestamp", "type": "string"},
+    {"name": "actor_id", "type": "string"},
+    {"name": "actor_role", "type": "string"},
+    {"name": "resource_type", "type": "string"},
+    {"name": "resource_id", "type": "string"},
+    {"name": "action", "type": "string"},
+    {"name": "before_state", "type": ["null", "string"], "default": null},
+    {"name": "after_state", "type": ["null", "string"], "default": null},
+    {"name": "justification", "type": ["null", "string"], "default": null},
+    {"name": "trace_id", "type": "string"},
+    {"name": "hash", "type": "string"},
+    {"name": "previous_hash", "type": "string"}
+  ]
+}

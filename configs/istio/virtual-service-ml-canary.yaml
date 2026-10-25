@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: anomaly-detection
+  namespace: aegis-prod
+spec:
+  hosts:
+    - anomaly-detection
+  http:
+    - route:
+        - destination:
+            host: anomaly-detection
+            subset: champion
+          weight: 95
+        - destination:
+            host: anomaly-detection
+            subset: canary
+          weight: 5
+      timeout: 20ms
+      retries:
+        attempts: 0

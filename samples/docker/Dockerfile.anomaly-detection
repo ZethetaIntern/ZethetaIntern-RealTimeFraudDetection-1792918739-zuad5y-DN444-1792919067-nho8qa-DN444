@@ -1,0 +1,15 @@
+FROM python:3.11-slim AS builder
+WORKDIR /src
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+FROM python:3.11-slim
+WORKDIR /app
+RUN useradd -u 1000 -m app
+COPY --from=builder /install /usr/local
+COPY app /app
+USER 1000
+EXPOSE 8080
+ENV MODEL_PATH=/app/models/champion.onnx
+# K8s probe: GET /healthz
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

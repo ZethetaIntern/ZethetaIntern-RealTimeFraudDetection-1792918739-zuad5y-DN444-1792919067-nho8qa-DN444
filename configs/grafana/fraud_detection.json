@@ -1,0 +1,10 @@
+{
+  "title": "Aegis Fraud Detection",
+  "panels": [
+    {"title": "Detection rate", "expr": "fraud_detection_rate"},
+    {"title": "FPR", "expr": "fraud_fp_rate"},
+    {"title": "Rule triggers", "expr": "sum by (rule_id) (rate(rule_triggered_total[5m]))"},
+    {"title": "PSI max", "expr": "max(model_psi)"},
+    {"title": "Graph hops histogram", "expr": "histogram_quantile(0.5, rate(graph_hops_bucket[1h]))"}
+  ]
+}

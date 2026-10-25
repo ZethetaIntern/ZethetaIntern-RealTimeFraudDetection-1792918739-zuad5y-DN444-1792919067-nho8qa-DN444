@@ -1,0 +1,60 @@
+@startuml Day01_EventStorming
+title ShieldPay monolith — initial Event Storming (transaction lifecycle)
+skinparam backgroundColor #FEFEFE
+
+package "Commands" #LightBlue {
+  (SubmitTransaction)
+  (EnrichTransaction)
+  (EvaluateRules)
+  (BatchScore)
+  (MakeRiskDecision)
+  (NotifyCustomer)
+  (CreateCase)
+  (AssignAnalyst)
+  (ResolveCase)
+}
+
+package "Domain events" #Gold {
+  (transaction_received)
+  (transaction_enriched)
+  (rule_evaluated)
+  (ml_scored)
+  (risk_decision_made)
+  (notification_sent)
+  (case_created)
+  (case_assigned)
+  (case_resolved)
+}
+
+package "Aggregates" #LightGreen {
+  database Transaction
+  database CustomerProfile
+  database RuleSet
+  database FraudCase
+  database Notification
+  database AuditEntry
+}
+
+(SubmitTransaction) --> (transaction_received)
+(transaction_received) --> (EnrichTransaction)
+(EnrichTransaction) --> (transaction_enriched)
+(transaction_enriched) --> (EvaluateRules)
+(EvaluateRules) --> (rule_evaluated)
+(rule_evaluated) --> (BatchScore)
+(BatchScore) --> (ml_scored)
+(ml_scored) --> (MakeRiskDecision)
+(MakeRiskDecision) --> (risk_decision_made)
+(risk_decision_made) --> (NotifyCustomer)
+(risk_decision_made) --> (CreateCase)
+(CreateCase) --> (case_created)
+(case_created) --> (AssignAnalyst)
+(AssignAnalyst) --> (case_assigned)
+(case_assigned) --> (ResolveCase)
+(ResolveCase) --> (case_resolved)
+(NotifyCustomer) --> (notification_sent)
+
+note right of (BatchScore)
+  PAIN: 15-minute cron.
+  Fraudsters wait for the gap.
+end note
+@enduml

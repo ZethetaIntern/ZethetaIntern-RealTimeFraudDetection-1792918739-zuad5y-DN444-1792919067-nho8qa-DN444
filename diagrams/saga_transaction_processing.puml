@@ -1,0 +1,29 @@
+@startuml Saga_Txn
+title Saga — Transaction processing (orchestration)
+start
+:Ingest + outbox;
+:Enrich (choreography);
+fork
+  :Evaluate rules;
+fork again
+  :ML score;
+fork again
+  :Graph lookup;
+end fork
+if (any engine timeout?) then (yes)
+  :Fallback + safety margin;
+  :audit degraded=true;
+endif
+:Aggregate score + explain;
+:Publish decision;
+if (action?) then (APPROVE)
+  :Ack network;
+elseif (STEP_UP) then
+  :Challenge customer;
+elseif (REVIEW) then
+  :Start investigation saga;
+else (DECLINE)
+  :Block + notify;
+endif
+stop
+@enduml

@@ -1,0 +1,9 @@
+{
+  "title": "Aegis Transaction Processing",
+  "panels": [
+    {"title": "TPS", "expr": "sum(rate(transactions_total[1m]))"},
+    {"title": "p99 e2e ms", "expr": "histogram_quantile(0.99, rate(txn_e2e_ms_bucket[5m]))"},
+    {"title": "Actions", "expr": "sum by (action) (rate(fraud_decisions_total[5m]))"},
+    {"title": "429 rate", "expr": "sum(rate(kong_http_requests_total{code=\"429\"}[5m]))"}
+  ]
+}

@@ -1,0 +1,26 @@
+@startuml Saga_Invest
+title Saga — Fraud investigation (orchestrated)
+start
+:Create case;
+:Freeze card (CBS);
+note right
+  Compensate: unfreeze
+end note
+:Notify cardholder;
+note right
+  Compensate: correction SMS
+end note
+:Assign analyst;
+:Investigate;
+if (outcome) then (fraud)
+  :Permanent block saga;
+  :Chargeback;
+elseif (false positive) then
+  :Unfreeze;
+  :Tune rule shadow if noisy;
+else (escalate)
+  :Senior queue;
+endif
+:Append audit (no compensate);
+stop
+@enduml

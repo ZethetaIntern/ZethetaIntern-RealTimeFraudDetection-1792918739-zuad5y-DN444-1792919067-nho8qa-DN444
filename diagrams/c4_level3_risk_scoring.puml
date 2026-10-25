@@ -1,0 +1,28 @@
+@startuml C4L3_Risk
+title C4 Level 3 — risk-scoring
+package "risk-scoring" {
+  [gRPC ComputeScore] as rpc
+  [Fan-out orchestrator] as fan
+  [gRPC client: rules] as cr
+  [gRPC client: ML] as cm
+  [gRPC client: graph] as cg
+  [Aggregator weighted/max/Bayes] as agg
+  [Threshold policy] as thr
+  [Explanation builder] as exp
+  [Fallback policy] as fb
+  [Kafka decision producer] as k
+  [Postgres decisions] as pg
+}
+rpc --> fan
+fan --> cr
+fan --> cm
+fan --> cg
+cr --> agg
+cm --> agg
+cg --> agg
+fan --> fb
+agg --> thr
+thr --> exp
+exp --> k
+exp --> pg
+@enduml

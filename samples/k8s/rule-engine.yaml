@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rule-engine
+  namespace: aegis-prod
+spec:
+  replicas: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels: { app: rule-engine }
+  template:
+    metadata:
+      labels: { app: rule-engine }
+    spec:
+      serviceAccountName: rule-engine
+      containers:
+        - name: app
+          image: 123456789.dkr.ecr.ap-south-1.amazonaws.com/rule-engine:GIT_SHA
+          ports: [{ containerPort: 8080 }]
+          resources:
+            requests: { cpu: "500m", memory: "512Mi" }
+            limits: { cpu: "2", memory: "1Gi" }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 10
+          envFrom:
+            - configMapRef: { name: rule-engine-config }
+            - secretRef: { name: rule-engine-secrets }
+      terminationGracePeriodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rule-engine
+  namespace: aegis-prod
+spec:
+  selector: { app: rule-engine }
+  ports: [{ port: 8080, targetPort: 8080 }]
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: rule-engine
+  namespace: aegis-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: rule-engine
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 60 }
+    - type: Pods
+      pods:
+        metric: { name: kafka_consumer_lag }
+        target: { type: AverageValue, averageValue: "200" }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rule-engine
+  namespace: aegis-prod
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels: { app: rule-engine }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: rule-engine-in
+  namespace: aegis-prod
+spec:
+  podSelector:
+    matchLabels: { app: rule-engine }
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app: risk-scoring }
+      ports: [{ protocol: TCP, port: 8080 }]

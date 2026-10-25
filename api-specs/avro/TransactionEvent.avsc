@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "TransactionEvent",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "transaction_id", "type": "string"},
+    {"name": "trace_id", "type": "string"},
+    {"name": "card_hash", "type": "string"},
+    {"name": "merchant_id", "type": "string"},
+    {"name": "mcc", "type": "string"},
+    {"name": "amount_minor", "type": "long"},
+    {"name": "currency", "type": "string"},
+    {"name": "channel", "type": {"type": "enum", "name": "Channel", "symbols": ["POS", "ECOM", "ATM", "UPI", "MOTO"]}},
+    {"name": "country", "type": "string"},
+    {"name": "ts_iso", "type": "string"},
+    {"name": "device_id", "type": ["null", "string"], "default": null},
+    {"name": "ip", "type": ["null", "string"], "default": null}
+  ]
+}

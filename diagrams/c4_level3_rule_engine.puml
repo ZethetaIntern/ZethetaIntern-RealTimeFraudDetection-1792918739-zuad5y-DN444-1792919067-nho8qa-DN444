@@ -1,0 +1,26 @@
+@startuml C4L3_Rules
+title C4 Level 3 — rule-engine
+package "rule-engine" {
+  [gRPC Evaluate] as ev
+  [Rule Management API] as api
+  [YAML/JSON Parser] as parser
+  [Condition Evaluator] as cond
+  [Temporal Aggregator] as win
+  [Action Executor] as act
+  [Compiled Rule Cache] as cache
+  [Redis velocity] as vel
+  [Shadow / A-B runner] as shadow
+  [Postgres rule versions] as pg
+  [Metrics exporter] as met
+}
+api --> parser
+parser --> pg
+parser --> cache
+ev --> cache
+ev --> cond
+cond --> win
+win --> vel
+cond --> act
+ev --> shadow
+ev --> met
+@enduml

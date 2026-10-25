@@ -1,0 +1,9 @@
+{
+  "title": "Aegis Infrastructure",
+  "panels": [
+    {"title": "CPU", "expr": "avg by (pod) (rate(container_cpu_usage_seconds_total[5m]))"},
+    {"title": "Kafka lag", "expr": "kafka_consumergroup_lag"},
+    {"title": "Redis hit", "expr": "redis_keyspace_hits_total / (redis_keyspace_hits_total+redis_keyspace_misses_total)"},
+    {"title": "HPA replicas", "expr": "kube_horizontalpodautoscaler_status_current_replicas"}
+  ]
+}

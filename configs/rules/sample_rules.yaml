@@ -1,0 +1,193 @@
+# 20 sample rules — 5 velocity, 3 amount, 3 geo, 3 MCC, 2 watchlist, 2 behavioural, 2 device/network
+rules:
+  - metadata: { rule_id: VEL-001, version: 1, author: rules-team, severity: high, description: More than 5 txns in 10 minutes on same card, category: velocity }
+    scope: cardholder
+    max_evaluation_time_ms: 8
+    when:
+      field: txn_count
+      op: gt
+      value: 5
+      temporal_window: { fn: count, duration: PT10M }
+    then:
+      - { action: score_adjust, delta: 250 }
+      - { action: flag }
+
+  - metadata: { rule_id: VEL-002, version: 1, author: rules-team, severity: high, description: More than 4 distinct merchants in 10 minutes, category: velocity }
+    scope: cardholder
+    when:
+      field: distinct_merchants
+      op: gt
+      value: 4
+      temporal_window: { fn: count, duration: PT10M }
+    then:
+      - { action: score_adjust, delta: 200 }
+
+  - metadata: { rule_id: VEL-003, version: 1, author: rules-team, severity: critical, description: Cumulative amount > 200000 INR in 1 hour, category: velocity }
+    scope: cardholder
+    when:
+      and:
+        - { field: currency, op: eq, value: INR }
+        - { field: amount_sum, op: gt, value: 20000000, temporal_window: { fn: sum, duration: PT1H } }
+    then:
+      - { action: score_adjust, delta: 300 }
+      - { action: flag }
+
+  - metadata: { rule_id: VEL-004, version: 1, author: rules-team, severity: critical, description: Cosmos-style ATM geo velocity >2 countries in 60m, category: velocity }
+    scope: cardholder
+    when:
+      and:
+        - { field: channel, op: eq, value: ATM }
+        - { field: distinct_countries, op: gt, value: 2, temporal_window: { fn: count, duration: PT60M } }
+    then:
+      - { action: block }
+      - { action: notify, channel: pagerduty, template: p1-geo-velocity }
+
+  - metadata: { rule_id: VEL-005, version: 1, author: rules-team, severity: medium, description: More than 3 UPI collect requests in 5 minutes, category: velocity }
+    scope: cardholder
+    when:
+      and:
+        - { field: channel, op: eq, value: UPI }
+        - { field: upi_collect_count, op: gt, value: 3, temporal_window: { fn: count, duration: PT5M } }
+    then:
+      - { action: step_up_auth, method: upi_pin_reprompt }
+
+  - metadata: { rule_id: AMT-001, version: 1, author: rules-team, severity: high, description: Domestic single txn > 500000 INR, category: amount }
+    scope: cardholder
+    when:
+      and:
+        - { field: country, op: eq, value: IN }
+        - { field: amount_minor, op: gt, value: 50000000 }
+    then:
+      - { action: score_adjust, delta: 280 }
+      - { action: step_up_auth, method: otp }
+
+  - metadata: { rule_id: AMT-002, version: 1, author: rules-team, severity: high, description: International single txn > 100000 INR, category: amount }
+    scope: cardholder
+    when:
+      and:
+        - { field: country, op: neq, value: IN }
+        - { field: amount_minor, op: gt, value: 10000000 }
+    then:
+      - { action: score_adjust, delta: 320 }
+
+  - metadata: { rule_id: AMT-003, version: 1, author: rules-team, severity: medium, description: Amount > 5 sigma above 90d mean, category: amount }
+    scope: cardholder
+    when:
+      field: amount_zscore_90d
+      op: gt
+      value: 5
+    then:
+      - { action: score_adjust, delta: 180 }
+
+  - metadata: { rule_id: GEO-001, version: 1, author: rules-team, severity: critical, description: Impossible travel India vs USA in 2h, category: geo }
+    scope: cardholder
+    when:
+      field: impossible_travel
+      op: eq
+      value: true
+    then:
+      - { action: block }
+
+  - metadata: { rule_id: GEO-002, version: 1, author: rules-team, severity: medium, description: Country not in 24m travel history, category: geo }
+    scope: cardholder
+    when:
+      field: country_in_history
+      op: eq
+      value: false
+    then:
+      - { action: score_adjust, delta: 150 }
+
+  - metadata: { rule_id: GEO-003, version: 1, author: rules-team, severity: high, description: High-risk country from reference data, category: geo }
+    scope: network
+    when:
+      field: country_risk
+      op: gte
+      value: 80
+    then:
+      - { action: score_adjust, delta: 220 }
+
+  - metadata: { rule_id: MCC-001, version: 1, author: rules-team, severity: high, description: First-time gambling MCC 7995, category: mcc }
+    scope: cardholder
+    when:
+      and:
+        - { field: mcc, op: eq, value: "7995" }
+        - { field: mcc_first_time, op: eq, value: true }
+    then:
+      - { action: score_adjust, delta: 200 }
+      - { action: flag }
+
+  - metadata: { rule_id: MCC-002, version: 1, author: rules-team, severity: high, description: Crypto MCC 6051, category: mcc }
+    scope: merchant
+    when:
+      field: mcc
+      op: in
+      value: ["6051", "6050", "4829"]
+    then:
+      - { action: score_adjust, delta: 160 }
+
+  - metadata: { rule_id: MCC-003, version: 1, author: rules-team, severity: medium, description: Sudden MCC pattern shift, category: mcc }
+    scope: cardholder
+    when:
+      field: mcc_shift_score
+      op: gt
+      value: 0.8
+    then:
+      - { action: score_adjust, delta: 120 }
+
+  - metadata: { rule_id: WL-001, version: 1, author: rules-team, severity: critical, description: PAN hash on compromised list, category: watchlist }
+    scope: cardholder
+    when:
+      field: card_on_watchlist
+      op: eq
+      value: true
+    then:
+      - { action: block }
+      - { action: notify, channel: sms, template: card_compromised }
+
+  - metadata: { rule_id: WL-002, version: 1, author: rules-team, severity: high, description: IP on botnet/proxy list, category: watchlist }
+    scope: network
+    when:
+      or:
+        - { field: ip_botnet, op: eq, value: true }
+        - { field: is_proxy, op: eq, value: true }
+    then:
+      - { action: score_adjust, delta: 210 }
+
+  - metadata: { rule_id: BEH-001, version: 1, author: rules-team, severity: low, description: Unusual hour vs profile, category: behavioural }
+    scope: cardholder
+    when:
+      field: unusual_hour
+      op: eq
+      value: true
+    then:
+      - { action: score_adjust, delta: 60 }
+
+  - metadata: { rule_id: BEH-002, version: 1, author: rules-team, severity: medium, description: POS-heavy card suddenly CNP burst, category: behavioural }
+    scope: cardholder
+    when:
+      and:
+        - { field: historical_pos_share, op: gte, value: 0.8 }
+        - { field: ecom_count_24h, op: gt, value: 5 }
+    then:
+      - { action: score_adjust, delta: 170 }
+
+  - metadata: { rule_id: DEV-001, version: 1, author: rules-team, severity: high, description: Jailbroken/rooted device, category: device }
+    scope: device
+    when:
+      field: device_compromised
+      op: eq
+      value: true
+    then:
+      - { action: score_adjust, delta: 190 }
+      - { action: step_up_auth, method: biometric }
+
+  - metadata: { rule_id: DEV-002, version: 1, author: rules-team, severity: critical, description: New device + high amount + new merchant, category: device }
+    scope: device
+    when:
+      and:
+        - { field: device_first_seen, op: eq, value: true }
+        - { field: amount_minor, op: gt, value: 5000000 }
+        - { field: merchant_first_time, op: eq, value: true }
+    then:
+      - { action: score_adjust, delta: 260 }
+      - { action: flag }

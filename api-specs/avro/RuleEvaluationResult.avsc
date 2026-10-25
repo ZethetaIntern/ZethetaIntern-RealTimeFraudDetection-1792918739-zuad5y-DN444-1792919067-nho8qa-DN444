@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "RuleEvaluationResult",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "transaction_id", "type": "string"},
+    {"name": "trace_id", "type": "string"},
+    {"name": "rule_score", "type": "int"},
+    {"name": "triggered", "type": {"type": "array", "items": {
+      "type": "record", "name": "TriggeredRule",
+      "fields": [
+        {"name": "rule_id", "type": "string"},
+        {"name": "version", "type": "int"},
+        {"name": "severity", "type": "string"},
+        {"name": "action", "type": "string"},
+        {"name": "matched", "type": "string"}
+      ]
+    }}
+  ]
+}

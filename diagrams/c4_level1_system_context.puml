@@ -1,0 +1,33 @@
+@startuml C4_Level1
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+title C4 Level 1 — System Context (Aegis)
+
+Person(analyst, "Fraud Analyst", "Investigates review-queue cases")
+Person(cardholder, "Cardholder", "Receives alerts; completes step-up")
+Person(rule_author, "Rule Manager", "Authors YAML rules")
+Person(regulator, "RBI / PCI / DPA auditor", "Pulls evidence")
+
+System(aegis, "Aegis Fraud Platform", "Real-time score 0-1000; approve / step-up / review / decline")
+
+System_Ext(networks, "Card networks", "Visa, Mastercard, RuPay — ISO 8583")
+System_Ext(upi, "NPCI UPI", "Pay and collect")
+System_Ext(cbs, "Core Banking System", "Balances, account status")
+System_Ext(mobile, "Customer mobile app", "Push + step-up")
+System_Ext(enrich, "Enrichment vendors", "ThreatMetrix, MaxMind")
+System_Ext(regsys, "Regulatory rails", "FIU-IND STR, FinCEN, FCA")
+System_Ext(monolith, "Legacy ShieldPay WAR", "Strangler; ACL during migration")
+System_Ext(atm, "ATM switch", "Authorisations — independently checksummed")
+
+Rel(networks, aegis, "Auth requests", "ISO 8583 / gRPC edge")
+Rel(upi, aegis, "UPI intents", "HTTPS")
+Rel(atm, aegis, "ATM auth", "ISO 8583")
+Rel(aegis, cbs, "Verify balance / freeze card", "gRPC/SOAP ACL")
+Rel(aegis, mobile, "Alerts + step-up", "Push/HTTPS")
+Rel(aegis, enrich, "Device + IP lookup", "HTTPS")
+Rel(aegis, regsys, "STR / audit export", "SFTP/API")
+Rel(monolith, aegis, "Dual-run via ACL", "REST")
+Rel(analyst, aegis, "Case UI", "HTTPS")
+Rel(cardholder, mobile, "Uses app")
+Rel(rule_author, aegis, "Rule console", "HTTPS")
+Rel(regulator, aegis, "Evidence API", "mTLS")
+@enduml

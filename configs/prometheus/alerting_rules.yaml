@@ -1,0 +1,34 @@
+groups:
+  - name: aegis-slo
+    rules:
+      - record: job:http_request_latency_p99
+        expr: histogram_quantile(0.99, sum by (le, job) (rate(http_request_duration_seconds_bucket[5m])))
+      - alert: PipelineDown
+        expr: up{job="txn-ingestion"} == 0
+        for: 1m
+        labels: { severity: P1 }
+        annotations: { runbook: "docs/day12/463549C_Dipay_Runbooks.md#p1-pipeline-down" }
+      - alert: DetectionRateCollapsed
+        expr: fraud_detection_rate < 0.80
+        for: 10m
+        labels: { severity: P1 }
+      - alert: LatencyBudgetBurn
+        expr: job:http_request_latency_p99{job="risk-scoring"} > 0.1
+        for: 5m
+        labels: { severity: P2 }
+      - alert: KafkaLagHigh
+        expr: kafka_consumergroup_lag > 10000
+        for: 5m
+        labels: { severity: P2 }
+      - alert: ServiceErrorRate
+        expr: rate(grpc_server_handled_total{grpc_code!~"OK"}[5m]) > 0.01
+        for: 5m
+        labels: { severity: P2 }
+      - alert: FalsePositiveDrift
+        expr: (fraud_fp_rate / fraud_fp_rate offset 7d) > 1.2
+        for: 1h
+        labels: { severity: P3 }
+      - alert: ModelPSI
+        expr: model_psi > 0.25
+        for: 30m
+        labels: { severity: P3 }

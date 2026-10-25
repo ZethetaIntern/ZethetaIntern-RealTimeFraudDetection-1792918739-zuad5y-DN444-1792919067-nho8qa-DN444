@@ -1,0 +1,19 @@
+flowchart TB
+  EXT[External clients] --> GW[Kong API Gateway]
+  GW --> ING[txn-ingestion]
+  ING -->|transactions.raw| K[Kafka]
+  K --> ENR[enrichment-profile]
+  ENR -->|transactions.enriched| K
+  K --> RS[risk-scoring]
+  RS -->|gRPC Evaluate| RUL[rule-engine]
+  RS -->|gRPC Score| ML[anomaly-detection]
+  RS -->|gRPC Analyse| GR[graph-analysis]
+  RS -->|fraud.decisions| K
+  K --> CM[case-management]
+  K --> NT[notification]
+  K --> AU[audit-compliance]
+  K --> AC[alert-correlation]
+  IM[integrity-monitor] --> TS[(TimescaleDB)]
+  UI[React consoles] --> GW
+  GR --> NEO[(Neo4j)]
+  ML --> REDIS[(Redis features)]

@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "GraphSignals",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "transaction_id", "type": "string"},
+    {"name": "community_suspicious", "type": "boolean"},
+    {"name": "modularity", "type": ["null", "double"], "default": null},
+    {"name": "hops_to_known_fraud", "type": ["null", "int"], "default": null},
+    {"name": "pagerank_device", "type": ["null", "double"], "default": null},
+    {"name": "templates_matched", "type": {"type": "array", "items": "string"}, "default": []}
+  ]
+}

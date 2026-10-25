@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "NotificationRequest",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "notification_id", "type": "string"},
+    {"name": "channel", "type": "string"},
+    {"name": "template_id", "type": "string"},
+    {"name": "locale", "type": "string", "default": "en-IN"},
+    {"name": "recipient", "type": "string"},
+    {"name": "payload_json", "type": "string"}
+  ]
+}

@@ -1,0 +1,31 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-notification-to-rules
+  namespace: aegis-prod
+spec:
+  selector:
+    matchLabels:
+      app: rule-engine
+  action: DENY
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/aegis-prod/sa/notification"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: risk-scoring-can-call-detectors
+  namespace: aegis-prod
+spec:
+  selector:
+    matchLabels:
+      app: rule-engine
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - "cluster.local/ns/aegis-prod/sa/risk-scoring"
+              - "cluster.local/ns/istio-system/sa/istio-ingressgateway"

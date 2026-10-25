@@ -1,0 +1,26 @@
+flowchart LR
+  subgraph commands [Commands]
+    ST[SubmitTransaction]
+    EN[EnrichTransaction]
+    ER[EvaluateRules]
+    BS[BatchScore]
+    RD[MakeRiskDecision]
+    NC[NotifyCustomer]
+    CC[CreateCase]
+    AA[AssignAnalyst]
+    RC[ResolveCase]
+  end
+  subgraph events [Events]
+    e1[transaction_received]
+    e2[transaction_enriched]
+    e3[rule_evaluated]
+    e4[ml_scored]
+    e5[risk_decision_made]
+    e6[notification_sent]
+    e7[case_created]
+    e8[case_assigned]
+    e9[case_resolved]
+  end
+  ST --> e1 --> EN --> e2 --> ER --> e3 --> BS --> e4 --> RD --> e5
+  e5 --> NC --> e6
+  e5 --> CC --> e7 --> AA --> e8 --> RC --> e9

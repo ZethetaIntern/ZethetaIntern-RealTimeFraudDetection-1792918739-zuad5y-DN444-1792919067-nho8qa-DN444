@@ -1,0 +1,13 @@
+@startuml Saga_Block
+title Saga — Card blocking
+start
+:Confirm fraud;
+:Block PAN token + hash on watchlist;
+:Issue replacement card;
+:Notify customer;
+:Update profile risk_tier;
+if (block fails) then
+  :Compensate: retry CBS; page P1;
+endif
+stop
+@enduml

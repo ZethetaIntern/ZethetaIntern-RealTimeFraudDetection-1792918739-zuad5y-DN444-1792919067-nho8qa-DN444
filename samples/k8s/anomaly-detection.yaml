@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anomaly-detection
+  namespace: aegis-prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: anomaly-detection }
+  template:
+    metadata:
+      labels: { app: anomaly-detection, version: champion }
+    spec:
+      serviceAccountName: anomaly-detection
+      containers:
+        - name: app
+          image: 123456789.dkr.ecr.ap-south-1.amazonaws.com/anomaly-detection:GIT_SHA
+          ports: [{ containerPort: 8080 }]
+          resources:
+            requests: { cpu: "1", memory: "1Gi" }
+            limits: { cpu: "4", memory: "2Gi" }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+          env:
+            - name: MODEL_PATH
+              value: /models/champion.onnx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: anomaly-detection
+  namespace: aegis-prod
+spec:
+  selector: { app: anomaly-detection }
+  ports: [{ port: 8080 }]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: anomaly-detection
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels: { app: anomaly-detection }

@@ -1,0 +1,17 @@
+@startuml RuleLifecycle
+title Rule lifecycle
+[*] --> Draft : analyst creates
+Draft --> Review : submit
+Review --> Draft : reject
+Review --> Approved : manager + director
+Approved --> Active : effective_date
+Active --> Deprecated : newer version live
+Deprecated --> Retired : expiry
+Active --> Active : rollback to N-1
+note right of Active
+  Shadow / A-B is a
+  parallel Active flag
+  that does not affect
+  customer action.
+end note
+@enduml

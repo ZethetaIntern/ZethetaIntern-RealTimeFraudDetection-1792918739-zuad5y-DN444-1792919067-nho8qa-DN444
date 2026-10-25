@@ -1,0 +1,18 @@
+@startuml AnalystAuth
+title Analyst + dual control
+actor Analyst
+participant IdP
+participant Kong
+participant Case
+participant Audit
+
+Analyst -> IdP: OIDC login + MFA
+IdP --> Analyst: JWT roles=analyst
+Analyst -> Kong: PUT /cases/id/decision
+Kong -> Case: gRPC
+Case -> Audit: append hash chain
+note over Audit
+  Audit DELETE denied by IAM.
+  Break-glass needs two approvers.
+end note
+@enduml

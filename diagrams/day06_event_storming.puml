@@ -1,0 +1,30 @@
+@startuml Day06_EDA
+title Event-driven backbone (condensed)
+skinparam backgroundColor #FAFAFA
+
+actor Channel
+queue "transactions.raw" as raw
+queue "transactions.enriched" as enr
+queue "fraud.decisions" as dec
+queue "fraud.alerts" as alt
+queue "audit.events" as aud
+queue "notifications.outbound" as ntf
+queue "graph.updates" as gup
+
+Channel --> raw
+raw --> [enrichment-profile]
+[enrichment-profile] --> enr
+enr --> [risk-scoring]
+[risk-scoring] --> [rule-engine]
+[risk-scoring] --> [anomaly-detection]
+[risk-scoring] --> [graph-analysis]
+[risk-scoring] --> dec
+[risk-scoring] --> alt
+[risk-scoring] --> aud
+dec --> [notification]
+dec --> [case-management]
+alt --> [alert-correlation]
+enr --> gup
+gup --> [graph-analysis]
+[notification] --> ntf
+@enduml

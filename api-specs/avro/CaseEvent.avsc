@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "CaseEvent",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "case_id", "type": "string"},
+    {"name": "transaction_id", "type": "string"},
+    {"name": "status", "type": "string"},
+    {"name": "assignee", "type": ["null", "string"], "default": null},
+    {"name": "decision", "type": ["null", "string"], "default": null},
+    {"name": "ts_iso", "type": "string"}
+  ]
+}

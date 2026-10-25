@@ -1,0 +1,27 @@
+@startuml C4L3_Ingestion
+title C4 Level 3 — txn-ingestion
+skinparam componentStyle uml2
+
+package "txn-ingestion" {
+  [REST/ISO adapter] as rest
+  [gRPC TransactionService] as grpc
+  [Normaliser] as norm
+  [PAN Tokeniser] as tok
+  [TraceId injector] as tr
+  [Kafka producer] as prod
+  [Outbox writer] as outbox
+  [Postgres repository] as repo
+  [Health /metrics] as health
+  [ACL adapter to monolith] as acl
+}
+
+rest --> grpc
+grpc --> tr
+tr --> tok
+tok --> norm
+norm --> outbox
+outbox --> repo
+outbox --> prod
+grpc --> health
+norm --> acl
+@enduml

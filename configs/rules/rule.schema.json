@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AegisFraudRule",
+  "type": "object",
+  "required": ["metadata", "scope", "when", "then"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["rule_id", "version", "author", "severity", "description", "category"],
+      "properties": {
+        "rule_id": { "type": "string" },
+        "version": { "type": "integer", "minimum": 1 },
+        "author": { "type": "string" },
+        "created_at": { "type": "string" },
+        "effective_date": { "type": "string" },
+        "expiry_date": { "type": ["string", "null"] },
+        "severity": { "enum": ["low", "medium", "high", "critical"] },
+        "description": { "type": "string" },
+        "category": { "type": "string" }
+      }
+    },
+    "scope": { "enum": ["cardholder", "merchant", "terminal", "device", "network"] },
+    "max_evaluation_time_ms": { "type": "integer", "minimum": 1, "maximum": 50, "default": 10 },
+    "when": { "$ref": "#/$defs/node" },
+    "then": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": { "enum": ["flag", "block", "score_adjust", "notify", "step_up_auth"] },
+          "delta": { "type": "integer" },
+          "channel": { "type": "string" },
+          "template": { "type": "string" },
+          "method": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "required": ["field", "op", "value"],
+      "properties": {
+        "field": { "type": "string" },
+        "op": { "enum": ["eq", "neq", "gt", "gte", "lt", "lte", "in", "not_in", "between", "regex"] },
+        "value": true,
+        "temporal_window": {
+          "type": "object",
+          "properties": {
+            "fn": { "enum": ["count", "sum", "avg", "max", "min"] },
+            "duration": { "type": "string" }
+          }
+        }
+      }
+    },
+    "node": {
+      "oneOf": [
+        { "$ref": "#/$defs/condition" },
+        {
+          "type": "object",
+          "properties": {
+            "and": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+            "or": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+            "not": { "$ref": "#/$defs/node" }
+          }
+        }
+      ]
+    }
+  }
+}

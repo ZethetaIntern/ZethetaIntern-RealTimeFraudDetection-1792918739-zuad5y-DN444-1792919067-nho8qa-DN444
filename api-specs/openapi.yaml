@@ -1,0 +1,184 @@
+openapi: 3.0.3
+info:
+  title: Aegis Fraud Platform External API
+  version: 1.0.0
+  description: REST surface on Kong. Internal services speak gRPC.
+servers:
+  - url: https://api.shieldpay.example/api/v1
+paths:
+  /transactions:
+    post:
+      summary: Submit a transaction for real-time scoring
+      security: [{ bearerAuth: [] }]
+      x-rate-limit: "merchant contract TPS; default 100 rps"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionSubmit"
+            example:
+              merchant_id: "M-991"
+              card_token: "tok_pan_abc"
+              amount_minor: 125000
+              currency: "INR"
+              channel: "ECOM"
+              mcc: "5732"
+              country: "IN"
+              device_id: "dev-9"
+              ip: "203.0.113.10"
+      responses:
+        "200":
+          description: Decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskDecision"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/Error"
+        "500":
+          $ref: "#/components/responses/Error"
+  /transactions/{id}/risk-score:
+    get:
+      summary: Fetch stored risk score
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskDecision"
+        "404":
+          $ref: "#/components/responses/Error"
+  /cases:
+    get:
+      summary: List cases (paginated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: page_size
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseList"
+  /cases/{id}/decision:
+    put:
+      summary: Analyst decision
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, justification]
+              properties:
+                decision: { type: string, enum: [confirm_fraud, false_positive, escalate] }
+                justification: { type: string }
+      responses:
+        "200":
+          description: Updated
+  /rules:
+    get:
+      summary: List rules
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Rule page
+    post:
+      summary: Create rule (draft)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleDraft"
+      responses:
+        "201":
+          description: Created
+  /dashboard/metrics:
+    get:
+      summary: Aggregated dashboard statistics
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: CQRS metrics
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+              trace_id: { type: string }
+  schemas:
+    TransactionSubmit:
+      type: object
+      required: [merchant_id, card_token, amount_minor, currency, channel]
+      properties:
+        merchant_id: { type: string }
+        card_token: { type: string }
+        amount_minor: { type: integer, format: int64 }
+        currency: { type: string }
+        channel: { type: string, enum: [POS, ECOM, ATM, UPI, MOTO] }
+        mcc: { type: string }
+        country: { type: string }
+        device_id: { type: string }
+        ip: { type: string }
+    RiskDecision:
+      type: object
+      properties:
+        transaction_id: { type: string }
+        score: { type: integer, minimum: 0, maximum: 1000 }
+        action: { type: string, enum: [APPROVE, STEP_UP, REVIEW, DECLINE] }
+        explanation: { type: string }
+        degraded: { type: boolean }
+    CaseList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              case_id: { type: string }
+              status: { type: string }
+              priority: { type: string }
+        page: { type: integer }
+        total: { type: integer }
+    RuleDraft:
+      type: object
+      properties:
+        rule_id: { type: string }
+        yaml: { type: string }

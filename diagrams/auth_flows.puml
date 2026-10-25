@@ -1,0 +1,22 @@
+@startuml AuthFlows
+title Authentication flows
+|Merchant app|
+start
+:OAuth2 client_credentials;
+:Receive JWT RS256;
+:POST /transactions Authorization Bearer;
+|#Gold|Kong|
+:Validate JWT, exp, aud;
+:RBAC merchant;
+:Rate limit;
+if (ok?) then (yes)
+  :mTLS to ingestion;
+else (no)
+  :401/429;
+  stop
+endif
+|Aegis|
+:Score;
+:200 decision;
+stop
+@enduml

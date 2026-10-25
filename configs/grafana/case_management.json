@@ -1,0 +1,8 @@
+{
+  "title": "Aegis Case Management",
+  "panels": [
+    {"title": "Open cases", "expr": "sum by (priority) (cases_open)"},
+    {"title": "Age p95 hours", "expr": "histogram_quantile(0.95, cases_age_hours_bucket)"},
+    {"title": "SLA breach 4h", "expr": "increase(cases_sla_breach_total[1h])"}
+  ]
+}

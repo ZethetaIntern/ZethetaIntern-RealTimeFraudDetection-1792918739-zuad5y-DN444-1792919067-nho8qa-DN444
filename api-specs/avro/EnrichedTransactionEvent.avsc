@@ -1,0 +1,24 @@
+{
+  "type": "record",
+  "name": "EnrichedTransactionEvent",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "transaction_id", "type": "string"},
+    {"name": "trace_id", "type": "string"},
+    {"name": "card_hash", "type": "string"},
+    {"name": "customer_hash", "type": "string"},
+    {"name": "amount_minor", "type": "long"},
+    {"name": "currency", "type": "string"},
+    {"name": "channel", "type": "string"},
+    {"name": "mcc", "type": "string"},
+    {"name": "country", "type": "string"},
+    {"name": "ts_iso", "type": "string"},
+    {"name": "device_id", "type": ["null", "string"], "default": null},
+    {"name": "ip_country", "type": ["null", "string"], "default": null},
+    {"name": "is_proxy", "type": "boolean", "default": false},
+    {"name": "bin_country", "type": ["null", "string"], "default": null},
+    {"name": "profile_avg_30d", "type": ["null", "double"], "default": null},
+    {"name": "txn_count_10m", "type": "int", "default": 0}
+  ]
+}

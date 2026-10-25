@@ -1,0 +1,16 @@
+# syntax=docker/dockerfile:1
+FROM eclipse-temurin:21-jdk-alpine AS builder
+WORKDIR /src
+COPY . .
+RUN ./gradlew bootJar --no-daemon
+
+FROM gcr.io/distroless/java21-debian12:nonroot
+WORKDIR /app
+COPY --from=builder /src/build/libs/rule-engine.jar /app/app.jar
+USER 65532
+EXPOSE 8080
+LABEL org.opencontainers.image.title="rule-engine" \
+      org.opencontainers.image.revision="$GIT_SHA" \
+      org.opencontainers.image.created="$BUILD_DATE"
+# HEALTHCHECK not supported in distroless the same way; K8s probes hit /healthz
+ENTRYPOINT ["java","-jar","/app/app.jar"]

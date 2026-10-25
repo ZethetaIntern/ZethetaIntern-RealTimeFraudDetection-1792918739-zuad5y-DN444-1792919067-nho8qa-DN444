@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "AnomalyScore",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "transaction_id", "type": "string"},
+    {"name": "model_id", "type": "string"},
+    {"name": "model_version", "type": "string"},
+    {"name": "score", "type": "double"},
+    {"name": "top_features", "type": {"type": "array", "items": {
+      "type": "record", "name": "Feat",
+      "fields": [
+        {"name": "name", "type": "string"},
+        {"name": "shap", "type": "double"}
+      ]
+    }}}
+  ]
+}

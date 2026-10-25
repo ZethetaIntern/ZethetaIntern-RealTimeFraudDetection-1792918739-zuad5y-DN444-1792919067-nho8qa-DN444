@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "RiskDecision",
+  "namespace": "aegis.events",
+  "fields": [
+    {"name": "schema_version", "type": "int", "default": 1},
+    {"name": "transaction_id", "type": "string"},
+    {"name": "trace_id", "type": "string"},
+    {"name": "score", "type": "int"},
+    {"name": "action", "type": {"type": "enum", "name": "Action", "symbols": ["APPROVE", "STEP_UP", "REVIEW", "DECLINE"]}},
+    {"name": "explanation", "type": "string"},
+    {"name": "rule_weight", "type": "double"},
+    {"name": "ml_weight", "type": "double"},
+    {"name": "graph_weight", "type": "double"},
+    {"name": "degraded", "type": "boolean", "default": false}
+  ]
+}
